@@ -1,6 +1,7 @@
 package com.chas.blog;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -51,7 +52,11 @@ public class PostRepositoryTest {
             "Contenido de teste"
         );
 
+        post.publish(NOW.minus(1, ChronoUnit.DAYS));
+
+
         postRepository.saveAndFlush(post);
+
         testEntityManager.clear();
 
         // when
@@ -65,7 +70,5 @@ public class PostRepositoryTest {
         assertThat(found.get().getPost().getId()).isEqualTo(post.getId());
 
     }
-
     
-
 }

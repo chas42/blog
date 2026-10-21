@@ -37,8 +37,6 @@ public class PostTranslation {
     @UpdateTimestamp
     private Instant updatedAt;
 
-    @Enumerated(EnumType.STRING)
-
     @Column(name = "locale")
     private Language language;
 

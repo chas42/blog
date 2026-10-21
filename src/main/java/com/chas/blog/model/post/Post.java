@@ -55,9 +55,9 @@ public class Post {
         return post;
     }
 
-    public void publish() {
+    public void publish(Instant when) {
         this.status = PostStatus.PUBLISHED;
-        this.publishedAt = Instant.now();
+        this.publishedAt = when;
     }
 
 }
