@@ -32,6 +32,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                 and p.status = 'PUBLISHED'
                 order by p.publishedAt desc
             """)
-    Page<PostTranslation> findByLanguageAndSlug(Language language, Instant now, Pageable pageable);
+    Page<PostTranslation> findByLanguage(Language language, Instant now, Pageable pageable);
 
 }
