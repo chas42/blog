@@ -23,7 +23,6 @@ import lombok.Setter;
 @Entity
 @Table(name = "post_translations")
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PostTranslation {
 

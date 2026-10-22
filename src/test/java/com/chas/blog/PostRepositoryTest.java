@@ -22,6 +22,8 @@ import com.chas.blog.repository.PostRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatCode;
+
 
 
 @DataJpaTest 
@@ -229,6 +231,61 @@ public class PostRepositoryTest {
         // when / then
         assertThatThrownBy(() -> postRepository.saveAndFlush(post))
             .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test 
+    void doesNotSavePostWithDuplicateSlug() {
+        // given
+        Post post1 = Post.createDraft(null);
+        post1.addTranslation(
+            Language.EN, 
+            "Test Title 1", 
+            "test-slug", 
+            "Test Summary 1", 
+            "Test Content 1"
+        );
+        postRepository.saveAndFlush(post1);
+
+        Post post2 = Post.createDraft(null);
+        post2.addTranslation(
+            Language.EN, 
+            "Test Title 2", 
+            "test-slug", 
+            "Test Summary 2", 
+            "Test Content 2"
+        );
+
+        // when / then
+        assertThatThrownBy(() -> postRepository.saveAndFlush(post2))
+            .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
+    void savesPostsWithSameSlugInDifferentLanguages() {
+        // given
+        Post post1 = Post.createDraft(null);
+        post1.addTranslation(
+            Language.EN, 
+            "Test Title 1", 
+            "test-slug", 
+            "Test Summary 1", 
+            "Test Content 1"
+        );
+        postRepository.saveAndFlush(post1);
+
+        Post post2 = Post.createDraft(null);
+        post2.addTranslation(
+            Language.PT, 
+            "Test Title 2", 
+            "test-slug", 
+            "Test Summary 2", 
+            "Test Content 2"
+        );
+
+        // when / then
+        assertThatCode(() -> postRepository.saveAndFlush(post2))
+            .doesNotThrowAnyException();
+        
     }
 
 }
