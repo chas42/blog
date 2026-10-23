@@ -3,13 +3,13 @@ package com.chas.blog.service;
 import java.time.Clock;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.chas.blog.dto.CreatePostRequest;
 import com.chas.blog.model.post.Post;
 import com.chas.blog.repository.PostRepository;
 import com.chas.blog.util.SlugGenerator;
 
-import jakarta.transaction.Transactional;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -32,7 +32,7 @@ public class PostServiceImpl implements PostService {
             request.language(),
             request.title(),
             SlugGenerator.fromTitle(request.title()),
-            request.content(),
+            request.summary(),
             request.content()
         );
 

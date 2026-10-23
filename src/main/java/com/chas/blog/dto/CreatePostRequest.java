@@ -7,6 +7,7 @@ import com.chas.blog.model.post.Language;
  */
 public record CreatePostRequest(
     String title,
+    String summary,
     String content,
     Long authorId,
     Language language

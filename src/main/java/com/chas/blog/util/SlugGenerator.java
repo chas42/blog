@@ -1,6 +1,7 @@
 package com.chas.blog.util;
 
 import java.text.Normalizer;
+import java.util.Locale;
 
 public class SlugGenerator {
 
@@ -16,7 +17,7 @@ public class SlugGenerator {
 
         return Normalizer.normalize(title, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "")
-                .toLowerCase()
+                .toLowerCase(Locale.ROOT)
                 .replaceAll("[^a-z0-9]+", "-")
                 .replaceAll("^-+", "")
 				.replaceAll("-++$", "");
