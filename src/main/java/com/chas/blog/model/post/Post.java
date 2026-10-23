@@ -7,6 +7,8 @@ import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.chas.blog.exceptions.CannotPublishWithoutTranslationException;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -56,6 +58,19 @@ public class Post {
     }
 
     public void publish(Instant when) {
+
+        if (translations.isEmpty()) {
+            throw new CannotPublishWithoutTranslationException("EN and PT");
+        }
+
+        if (translations.stream().noneMatch(t -> t.getLanguage() == Language.EN)) {
+            throw new CannotPublishWithoutTranslationException("EN");
+        }
+
+        if (translations.stream().noneMatch(t -> t.getLanguage() == Language.PT)) {
+            throw new CannotPublishWithoutTranslationException("PT");
+        }
+
         this.status = PostStatus.PUBLISHED;
         this.publishedAt = when;
     }

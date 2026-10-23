@@ -90,6 +90,13 @@ public class PostRepositoryTest {
             "Test Summary 1",
             "Test Content 1"
         );
+        post1.addTranslation(
+            Language.PT,
+            "Título de teste 1",
+            "titulo-de-teste-1",
+            "Resumo de teste 1",
+            "Conteúdo de teste 1"
+        );
         post1.publish(NOW.minus(2, ChronoUnit.DAYS));
         
         Post post2 = Post.createDraft(null);
@@ -99,6 +106,13 @@ public class PostRepositoryTest {
             "test-slug-2",
             "Test Summary 2",
             "Test Content 2"
+        );
+        post2.addTranslation(
+            Language.PT,
+            "Título de teste 2",
+            "titulo-de-teste-2",
+            "Resumo de teste 2",
+            "Conteúdo de teste 2"
         );
         post2.publish(NOW.minus(1, ChronoUnit.DAYS));
 
@@ -135,6 +149,13 @@ public class PostRepositoryTest {
             "Test Summary 1",
             "Test Content 1"
         );
+        post1.addTranslation(
+            Language.PT,
+            "Título de teste 1",
+            "titulo-de-teste-1",
+            "Resumo de teste 1",
+            "Conteúdo de teste 1"
+        );
         post1.publish(NOW.minus(2, ChronoUnit.DAYS));
         
         Post post2 = Post.createDraft(null);
@@ -144,6 +165,13 @@ public class PostRepositoryTest {
             "test-slug-2",
             "Test Summary 2",
             "Test Content 2"
+        );
+        post2.addTranslation(
+            Language.PT,
+            "Título de teste 2",
+            "titulo-de-teste-2",
+            "Resumo de teste 2",
+            "Conteúdo de teste 2"
         );
 
         postRepository.saveAndFlush(post1);
@@ -176,6 +204,13 @@ public class PostRepositoryTest {
             "Test Summary 1",
             "Test Content 1"
         );
+        post1.addTranslation(
+            Language.PT,
+            "Título de teste 1",
+            "titulo-de-teste-1",
+            "Resumo de teste 1",
+            "Conteúdo de teste 1"
+        );
         post1.publish(NOW.minus(2, ChronoUnit.DAYS));
         
         Post post2 = Post.createDraft(null);
@@ -185,6 +220,13 @@ public class PostRepositoryTest {
             "test-slug-2",
             "Test Summary 2",
             "Test Content 2"
+        );
+        post2.addTranslation(
+            Language.PT,
+            "Título de teste 2",
+            "titulo-de-teste-2",
+            "Resumo de teste 2",
+            "Conteúdo de teste 2"
         );
         post2.publish(NOW.plus(1, ChronoUnit.DAYS));
 
