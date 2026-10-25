@@ -3,8 +3,9 @@ package com.chas.blog.service;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
-import org.apache.commons.codec.language.bm.Lang;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.chas.blog.dto.CreatePostRequest;
+import com.chas.blog.exceptions.PostNotFoundException;
 import com.chas.blog.model.post.Language;
 import com.chas.blog.model.post.Post;
 import com.chas.blog.model.post.PostStatus;
@@ -24,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
 public class PostServiceTest {
@@ -78,10 +81,10 @@ public class PostServiceTest {
 		assertThat(postTranslation.getSlug()).isEqualTo("my-title-is-this");
 	}
 
-	@Test 
+	@Test
 	void createDraftReturnsIdOfSavedPost() {
 
-		//given
+		// given
 		when(repository.save(any(Post.class))).thenAnswer(invocation -> {
 			Post post = invocation.getArgument(0);
 			ReflectionTestUtils.setField(post, "id", 42L);
@@ -90,15 +93,74 @@ public class PostServiceTest {
 
 		// when
 		Long id = service.createDraft(new CreatePostRequest(
-			"title",
-			"summary",
-			"content",
-			1L,
-			Language.EN
-		));
+				"title",
+				"summary",
+				"content",
+				1L,
+				Language.EN));
 
 		// then
 		assertThat(id).isEqualTo(42L);
+
+	}
+
+	@Test
+	void publishPost() {
+		// given
+
+		Post post = Post.createDraft(1L);
+		post.addTranslation(Language.EN, "title", "slug", "summary", "content");
+		post.addTranslation(Language.PT, "title", "slug", "summary", "content");
+		when(repository.findById(1L)).thenReturn(Optional.of(post));
+
+		// when
+		service.publish(1L);
+
+		// then
+		assertThat(post.getStatus()).isEqualTo(PostStatus.PUBLISHED);
+		assertThat(post.getPublishedAt()).isEqualTo(clock.instant());
+
+	}
+
+	@Test
+	void publishPostThrowsExceptionWhenPostNotFound() {
+		// given
+		when(repository.findById(1L)).thenReturn(Optional.empty());
+
+		// when
+		assertThatThrownBy(() -> service.publish(1L))
+				.isInstanceOf(PostNotFoundException.class)
+				.hasMessage("Post not found: 1");
+
+	}
+
+	@Test
+	void schedulePost() {
+
+		// given
+		Post post = Post.createDraft(1L);
+		post.addTranslation(Language.EN, "title", "slug", "summary", "content");
+		post.addTranslation(Language.PT, "title", "slug", "summary", "content");
+		when(repository.findById(1L)).thenReturn(Optional.of(post));
+
+		// when
+		service.schedule(1L, Instant.parse("2026-10-23T12:00:00Z"));
+
+		// then
+		assertThat(post.getStatus()).isEqualTo(PostStatus.PUBLISHED);
+		assertThat(post.getPublishedAt()).isEqualTo(Instant.parse("2026-10-23T12:00:00Z"));
+	}
+
+	@Test
+	void schedulePostThrowsExceptionWhenPostNotFound() {
+		// given
+		when(repository.findById(1L)).thenReturn(Optional.empty());
+		Instant now = clock.instant().plus(1, ChronoUnit.DAYS);
+
+		// when
+		assertThatThrownBy(() -> service.schedule(1L, now))
+				.isInstanceOf(PostNotFoundException.class)
+				.hasMessage("Post not found: 1");
 
 	}
 
