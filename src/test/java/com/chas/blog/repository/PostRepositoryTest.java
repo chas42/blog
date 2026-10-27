@@ -1,4 +1,4 @@
-package com.chas.blog;
+package com.chas.blog.repository;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -15,10 +15,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Page;
 
+import com.chas.blog.TestcontainersConfiguration;
 import com.chas.blog.model.post.Language;
 import com.chas.blog.model.post.Post;
 import com.chas.blog.model.post.PostTranslation;
-import com.chas.blog.repository.PostRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

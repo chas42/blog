@@ -15,6 +15,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.chas.blog.dto.CreatePostRequest;
+import com.chas.blog.exceptions.CannotPublishWithoutTranslationException;
+import com.chas.blog.exceptions.CannotSchedulePostInThePastException;
+import com.chas.blog.exceptions.CannotSchedulePublishedPostException;
 import com.chas.blog.exceptions.PostNotFoundException;
 import com.chas.blog.model.post.Language;
 import com.chas.blog.model.post.Post;
@@ -104,6 +107,8 @@ public class PostServiceTest {
 
 	}
 
+	// publish post tests
+
 	@Test
 	void publishPost() {
 		// given
@@ -134,6 +139,8 @@ public class PostServiceTest {
 
 	}
 
+	// schedule post tests
+
 	@Test
 	void schedulePost() {
 
@@ -161,6 +168,52 @@ public class PostServiceTest {
 		assertThatThrownBy(() -> service.schedule(1L, now))
 				.isInstanceOf(PostNotFoundException.class)
 				.hasMessage("Post not found: 1");
+
+	}
+
+	@Test 
+	void schedulePostThrowsExceptionWhenPostTranslationsAreMissing() {
+		// given
+		Post post = Post.createDraft(1L);
+		when(repository.findById(1L)).thenReturn(Optional.of(post));
+		Instant now = clock.instant().plus(1, ChronoUnit.DAYS);
+
+		// when
+		assertThatThrownBy(() -> service.schedule(1L, now))
+				.isInstanceOf(CannotPublishWithoutTranslationException.class)
+				.hasMessage("Cannot publish a post without translations in EN and PT");
+	} 
+
+	@Test 
+	void schedulePostThrowsExceptionWhenScheduledInThePast() {
+		// given
+		Post post = Post.createDraft(1L);
+		post.addTranslation(Language.EN, "title", "slug", "summary", "content");
+		post.addTranslation(Language.PT, "title", "slug", "summary", "content");
+		when(repository.findById(1L)).thenReturn(Optional.of(post));
+		Instant past = clock.instant().minus(1, ChronoUnit.DAYS);
+
+		// when
+		assertThatThrownBy(() -> service.schedule(1L, past))
+				.isInstanceOf(CannotSchedulePublishedPostException.class)
+				.hasMessage("Cannot schedule a post in the past");
+	}
+
+	@Test
+	void schedulePostThrowsExceptionWhenPostAlreadyPublished() {
+		// given
+		Post post = Post.createDraft(42L);
+		post.addTranslation(Language.EN, "title", "slug", "summary", "content");
+		post.addTranslation(Language.PT, "title", "slug", "summary", "content");
+		post.publish(clock.instant());
+
+		when(repository.findById(42L)).thenReturn(Optional.of(post));
+
+		// when
+		assertThatThrownBy(() -> service.schedule(42L, clock.instant().plus(1, ChronoUnit.DAYS)))
+			.isInstanceOf(CannotSchedulePostInThePastException.class)
+			.hasMessage("Cannot schedule a post in the past");
+
 
 	}
 

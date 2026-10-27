@@ -11,9 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.chas.blog.dto.CreatePostRequest;
 import com.chas.blog.dto.PostSummary;
 import com.chas.blog.dto.PostView;
+import com.chas.blog.exceptions.CannotSchedulePostInThePastException;
+import com.chas.blog.exceptions.CannotSchedulePublishedPostException;
 import com.chas.blog.exceptions.PostNotFoundException;
 import com.chas.blog.model.post.Language;
 import com.chas.blog.model.post.Post;
+import com.chas.blog.model.post.PostStatus;
 import com.chas.blog.model.post.PostTranslation;
 import com.chas.blog.repository.PostRepository;
 import com.chas.blog.util.SlugGenerator;
@@ -62,9 +65,17 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional 
     public void schedule(Long postId, Instant when) {
+    
+        if (when.isBefore(clock.instant())) {
+            throw new CannotSchedulePostInThePastException();
+        }
 
         Post postFound = postRepository.findById(postId)
             .orElseThrow(() -> new PostNotFoundException(postId));
+
+        if (postFound.getStatus() == PostStatus.PUBLISHED) {
+            throw new CannotSchedulePublishedPostException();
+        }
 
         postFound.publish(when);
 
