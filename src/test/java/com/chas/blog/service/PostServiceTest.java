@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -12,9 +13,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.chas.blog.dto.CreatePostRequest;
+import com.chas.blog.dto.PostSummary;
+import com.chas.blog.dto.PostView;
 import com.chas.blog.exceptions.CannotPublishWithoutTranslationException;
 import com.chas.blog.exceptions.CannotSchedulePostInThePastException;
 import com.chas.blog.exceptions.CannotSchedulePublishedPostException;
@@ -187,15 +194,11 @@ public class PostServiceTest {
 	@Test 
 	void schedulePostThrowsExceptionWhenScheduledInThePast() {
 		// given
-		Post post = Post.createDraft(1L);
-		post.addTranslation(Language.EN, "title", "slug", "summary", "content");
-		post.addTranslation(Language.PT, "title", "slug", "summary", "content");
-		when(repository.findById(1L)).thenReturn(Optional.of(post));
 		Instant past = clock.instant().minus(1, ChronoUnit.DAYS);
 
 		// when
 		assertThatThrownBy(() -> service.schedule(1L, past))
-				.isInstanceOf(CannotSchedulePublishedPostException.class)
+				.isInstanceOf(CannotSchedulePostInThePastException.class)
 				.hasMessage("Cannot schedule a post in the past");
 	}
 
@@ -209,12 +212,87 @@ public class PostServiceTest {
 
 		when(repository.findById(42L)).thenReturn(Optional.of(post));
 
-		// when
+		// when then
 		assertThatThrownBy(() -> service.schedule(42L, clock.instant().plus(1, ChronoUnit.DAYS)))
-			.isInstanceOf(CannotSchedulePostInThePastException.class)
-			.hasMessage("Cannot schedule a post in the past");
+			.isInstanceOf(CannotSchedulePublishedPostException.class)
+			.hasMessage("Cannot schedule a post that is already published");
+	}
 
+	private PostTranslation translation(Language language, String title, String slug) {
+		Post post = Post.createDraft(1L);
+		post.addTranslation(language, title, slug, "Summary of " + title, "Content of " + title);
+		return post.getTranslations().get(0);
+	}
 
+	@Test
+	void findPublishedReturnsViewOfTranslation() {
+		// given
+		PostTranslation translation = translation(Language.PT, "Olá Mundo", "ola-mundo");
+		when(repository.findPublishedSlug(Language.PT, "ola-mundo", clock.instant()))
+				.thenReturn(Optional.of(translation));
+
+		// when
+		PostView view = service.findPublished(Language.PT, "ola-mundo");
+
+		// then
+		assertThat(view.title()).isEqualTo("Olá Mundo");
+		assertThat(view.slug()).isEqualTo("ola-mundo");
+		assertThat(view.summary()).isEqualTo("Summary of Olá Mundo");
+		assertThat(view.content()).isEqualTo("Content of Olá Mundo");
+		assertThat(view.language()).isEqualTo(Language.PT);
+	}
+
+	@Test
+	void findPublishedThrowsWhenNotFound() {
+		// given
+		when(repository.findPublishedSlug(Language.EN, "missing", clock.instant()))
+				.thenReturn(Optional.empty());
+
+		// when / then
+		assertThatThrownBy(() -> service.findPublished(Language.EN, "missing"))
+				.isInstanceOf(PostNotFoundException.class)
+				.hasMessage("Post not found: missing");
+	}
+
+	@Test
+	void listPublishedMapsTranslationsToSummaries() {
+		// given
+		Pageable pageable = PageRequest.of(1, 2);   // segunda página, 2 itens por página
+		List<PostTranslation> content = List.of(
+				translation(Language.EN, "First", "first"),
+				translation(Language.EN, "Second", "second"));
+		when(repository.findByLanguage(Language.EN, clock.instant(), pageable))
+				.thenReturn(new PageImpl<>(content, pageable, 5));
+
+		// when
+		Page<PostSummary> page = service.listPublished(Language.EN, pageable);
+
+		// then: conteúdo convertido, na mesma ordem
+		assertThat(page.getContent())
+				.extracting(PostSummary::title)
+				.containsExactly("First", "Second");
+		assertThat(page.getContent().get(0).summary()).isEqualTo("Summary of First");
+
+		// then: metadados preservados
+		assertThat(page.getNumber()).isEqualTo(1);
+		assertThat(page.getSize()).isEqualTo(2);
+		assertThat(page.getTotalElements()).isEqualTo(5);
+		assertThat(page.getTotalPages()).isEqualTo(3);
+	}
+
+	@Test
+	void listPublishedReturnsEmptyPageWhenNothingPublished() {
+		// given
+		Pageable pageable = PageRequest.of(0, 10);
+		when(repository.findByLanguage(Language.PT, clock.instant(), pageable))
+				.thenReturn(Page.empty(pageable));
+
+		// when
+		Page<PostSummary> page = service.listPublished(Language.PT, pageable);
+
+		// then
+		assertThat(page.getContent()).isEmpty();
+		assertThat(page.getTotalElements()).isZero();
 	}
 
 }
