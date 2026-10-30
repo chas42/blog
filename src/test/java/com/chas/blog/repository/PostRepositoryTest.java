@@ -256,7 +256,8 @@ public class PostRepositoryTest {
         "Test-Slug",
         "slug-com-ç",
         "-starts-with-hyphen",
-        "double--hyphen"
+        "double--hyphen",
+        "ends-with-hyphen-"
     })
 
     void doesNotSavePostWithInvalidSlug(String invalidSlug) {

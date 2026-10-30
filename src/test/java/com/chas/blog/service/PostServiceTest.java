@@ -55,13 +55,20 @@ public class PostServiceTest {
 	@Test
 	void testCreatePostDraft() {
 
-		// given
-		var request = new CreatePostRequest(
+		var translationRequest = new com.chas.blog.dto.TranslationRequest(
 				"My Title is this",
 				"Summary",
-				"Content",
+				"Content");
+		var translationRequest2 = new com.chas.blog.dto.TranslationRequest(
+				"Meu Título é este",
+				"Resumo",
+				"Conteúdo");
+
+		// given
+		var request = new CreatePostRequest(
 				1L,
-				Language.EN);
+				translationRequest,
+				translationRequest2);
 
 		when(repository.save(any(Post.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
@@ -80,7 +87,7 @@ public class PostServiceTest {
 		assertThat(postSaved.getStatus()).isEqualTo(PostStatus.DRAFT);
 		assertThat(postSaved.getAuthorId()).isEqualTo(1L);
 		assertThat(postSaved.getPublishedAt()).isNull();
-		assertThat(postSaved.getTranslations()).hasSize(1);
+		assertThat(postSaved.getTranslations()).hasSize(2);
 
 		PostTranslation postTranslation = postSaved.getTranslations().get(0);
 
@@ -89,6 +96,13 @@ public class PostServiceTest {
 		assertThat(postTranslation.getSummary()).isEqualTo("Summary");
 		assertThat(postTranslation.getContent()).isEqualTo("Content");
 		assertThat(postTranslation.getSlug()).isEqualTo("my-title-is-this");
+
+		PostTranslation postTranslation2 = postSaved.getTranslations().get(1);
+		assertThat(postTranslation2.getLanguage()).isEqualTo(Language.PT);
+		assertThat(postTranslation2.getTitle()).isEqualTo("Meu Título é este");
+		assertThat(postTranslation2.getSummary()).isEqualTo("Resumo");
+		assertThat(postTranslation2.getContent()).isEqualTo("Conteúdo");
+		assertThat(postTranslation2.getSlug()).isEqualTo("meu-titulo-e-este");
 	}
 
 	@Test
@@ -101,13 +115,22 @@ public class PostServiceTest {
 			return post;
 		});
 
-		// when
-		Long id = service.createDraft(new CreatePostRequest(
-				"title",
-				"summary",
-				"content",
+		var translationRequest = new com.chas.blog.dto.TranslationRequest(
+				"My Title is this",
+				"Summary",
+				"Content");
+		var translationRequest2 = new com.chas.blog.dto.TranslationRequest(
+				"Meu Título é este",
+				"Resumo",
+				"Conteúdo");
+
+		// given
+		var request = new CreatePostRequest(
 				1L,
-				Language.EN));
+				translationRequest,
+				translationRequest2);
+
+		Long id = service.createDraft(request);
 
 		// then
 		assertThat(id).isEqualTo(42L);
@@ -178,7 +201,7 @@ public class PostServiceTest {
 
 	}
 
-	@Test 
+	@Test
 	void schedulePostThrowsExceptionWhenPostTranslationsAreMissing() {
 		// given
 		Post post = Post.createDraft(1L);
@@ -189,9 +212,9 @@ public class PostServiceTest {
 		assertThatThrownBy(() -> service.schedule(1L, now))
 				.isInstanceOf(CannotPublishWithoutTranslationException.class)
 				.hasMessage("Cannot publish a post without translations in EN and PT");
-	} 
+	}
 
-	@Test 
+	@Test
 	void schedulePostThrowsExceptionWhenScheduledInThePast() {
 		// given
 		Instant past = clock.instant().minus(1, ChronoUnit.DAYS);
@@ -214,8 +237,8 @@ public class PostServiceTest {
 
 		// when then
 		assertThatThrownBy(() -> service.schedule(42L, clock.instant().plus(1, ChronoUnit.DAYS)))
-			.isInstanceOf(CannotSchedulePublishedPostException.class)
-			.hasMessage("Cannot schedule a post that is already published");
+				.isInstanceOf(CannotSchedulePublishedPostException.class)
+				.hasMessage("Cannot schedule a post that is already published");
 	}
 
 	private PostTranslation translation(Language language, String title, String slug) {
@@ -257,7 +280,7 @@ public class PostServiceTest {
 	@Test
 	void listPublishedMapsTranslationsToSummaries() {
 		// given
-		Pageable pageable = PageRequest.of(1, 2);   // segunda página, 2 itens por página
+		Pageable pageable = PageRequest.of(1, 2); // segunda página, 2 itens por página
 		List<PostTranslation> content = List.of(
 				translation(Language.EN, "First", "first"),
 				translation(Language.EN, "Second", "second"));

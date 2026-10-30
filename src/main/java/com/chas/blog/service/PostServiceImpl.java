@@ -40,11 +40,19 @@ public class PostServiceImpl implements PostService {
         Post post = Post.createDraft(request.authorId());
 
         post.addTranslation(
-            request.language(),
-            request.title(),
-            SlugGenerator.fromTitle(request.title()),
-            request.summary(),
-            request.content()
+            Language.EN,
+            request.en().title(),
+            SlugGenerator.fromTitle(request.en().title()),
+            request.en().summary(),
+            request.en().content()
+        );
+
+        post.addTranslation(
+            Language.PT,
+            request.pt().title(),
+            SlugGenerator.fromTitle(request.pt().title()),
+            request.pt().summary(),
+            request.pt().content()
         );
 
         Post savedPost = postRepository.save(post);
