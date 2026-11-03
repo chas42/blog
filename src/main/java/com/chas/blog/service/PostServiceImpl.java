@@ -115,7 +115,8 @@ public class PostServiceImpl implements PostService {
         return posts.map(t -> new PostSummary(
             t.getSlug(),
             t.getTitle(),
-            t.getSummary()
+            t.getSummary(),
+            t.getPost().getPublishedAt()
         ));
     }
 
