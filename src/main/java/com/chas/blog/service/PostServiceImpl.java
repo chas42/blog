@@ -113,6 +113,7 @@ public class PostServiceImpl implements PostService {
         Page<PostTranslation> posts = postRepository.findByLanguage(lang, clock.instant(), p);
 
         return posts.map(t -> new PostSummary(
+            t.getSlug(),
             t.getTitle(),
             t.getSummary()
         ));
