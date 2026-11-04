@@ -21,7 +21,6 @@ import com.chas.blog.model.post.PostTranslation;
 import com.chas.blog.repository.PostRepository;
 import com.chas.blog.util.SlugGenerator;
 
-
 @Service
 public class PostServiceImpl implements PostService {
 
@@ -34,26 +33,24 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Transactional 
+    @Transactional
     public Long createDraft(CreatePostRequest request) {
 
         Post post = Post.createDraft(request.authorId());
 
         post.addTranslation(
-            Language.EN,
-            request.en().title(),
-            SlugGenerator.fromTitle(request.en().title()),
-            request.en().summary(),
-            request.en().content()
-        );
+                Language.EN,
+                request.en().title(),
+                SlugGenerator.fromTitle(request.en().title()),
+                request.en().summary(),
+                request.en().content());
 
         post.addTranslation(
-            Language.PT,
-            request.pt().title(),
-            SlugGenerator.fromTitle(request.pt().title()),
-            request.pt().summary(),
-            request.pt().content()
-        );
+                Language.PT,
+                request.pt().title(),
+                SlugGenerator.fromTitle(request.pt().title()),
+                request.pt().summary(),
+                request.pt().content());
 
         Post savedPost = postRepository.save(post);
 
@@ -61,25 +58,25 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Transactional 
+    @Transactional
     public void publish(Long postId) {
 
         Post postFound = postRepository.findById(postId)
-            .orElseThrow(() -> new PostNotFoundException(postId));
+                .orElseThrow(() -> new PostNotFoundException(postId));
 
         postFound.publish(clock.instant());
     }
 
     @Override
-    @Transactional 
+    @Transactional
     public void schedule(Long postId, Instant when) {
-    
+
         if (when.isBefore(clock.instant())) {
             throw new CannotSchedulePostInThePastException();
         }
 
         Post postFound = postRepository.findById(postId)
-            .orElseThrow(() -> new PostNotFoundException(postId));
+                .orElseThrow(() -> new PostNotFoundException(postId));
 
         if (postFound.getStatus() == PostStatus.PUBLISHED) {
             throw new CannotSchedulePublishedPostException();
@@ -92,18 +89,23 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public PostView findPublished(Language lang, String slug) {
-        
+
         PostTranslation postTranslation = postRepository.findPublishedSlug(lang, slug, clock.instant())
-            .orElseThrow(() -> new PostNotFoundException(slug));
+                .orElseThrow(() -> new PostNotFoundException(slug));
 
         return new PostView(
-            postTranslation.getTitle(), 
-            postTranslation.getSummary(), 
-            postTranslation.getContent(), 
-            postTranslation.getSlug(), 
-            postTranslation.getLanguage()
-        );
-        
+                postTranslation.getSlug(),
+                postTranslation.getTitle(),
+                postTranslation.getSummary(),
+                postTranslation.getContent(),
+                postTranslation.getLanguage(),
+                postTranslation.getPost().getPublishedAt(),
+                postTranslation.getPost().getTranslations().stream()
+                        .filter(t -> t.getLanguage() != lang)
+                        .collect(java.util.stream.Collectors.toMap(
+                                translation -> translation.getLanguage(),
+                                translation -> translation.getSlug())));
+
     }
 
     @Override
@@ -113,11 +115,10 @@ public class PostServiceImpl implements PostService {
         Page<PostTranslation> posts = postRepository.findByLanguage(lang, clock.instant(), p);
 
         return posts.map(t -> new PostSummary(
-            t.getSlug(),
-            t.getTitle(),
-            t.getSummary(),
-            t.getPost().getPublishedAt()
-        ));
+                t.getSlug(),
+                t.getTitle(),
+                t.getSummary(),
+                t.getPost().getPublishedAt()));
     }
 
 }

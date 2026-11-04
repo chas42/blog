@@ -1,5 +1,7 @@
 package com.chas.blog.model.post;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -17,6 +19,11 @@ public enum Language {
 			}
 		}
 		throw new IllegalArgumentException("Unknown language code: " + code);
+	}
+
+	@JsonValue
+	public String getCode() {
+		return code;
 	}
 
 }
