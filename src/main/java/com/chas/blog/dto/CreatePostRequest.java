@@ -1,7 +1,5 @@
 package com.chas.blog.dto;
 
-import com.chas.blog.model.post.Language;
-
 /**
  * CreatePostRequest
  */

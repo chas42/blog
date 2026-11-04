@@ -235,8 +235,10 @@ public class PostServiceTest {
 
 		when(repository.findById(42L)).thenReturn(Optional.of(post));
 
+		Instant instant = clock.instant().plus(1, ChronoUnit.DAYS);
+
 		// when then
-		assertThatThrownBy(() -> service.schedule(42L, clock.instant().plus(1, ChronoUnit.DAYS)))
+		assertThatThrownBy(() -> service.schedule(42L, instant))
 				.isInstanceOf(CannotSchedulePublishedPostException.class)
 				.hasMessage("Cannot schedule a post that is already published");
 	}
