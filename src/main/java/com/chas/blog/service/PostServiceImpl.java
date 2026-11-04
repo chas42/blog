@@ -103,8 +103,8 @@ public class PostServiceImpl implements PostService {
                 postTranslation.getPost().getTranslations().stream()
                         .filter(t -> t.getLanguage() != lang)
                         .collect(java.util.stream.Collectors.toMap(
-                                translation -> translation.getLanguage(),
-                                translation -> translation.getSlug())));
+                                PostTranslation::getLanguage,
+                                PostTranslation::getSlug)));
 
     }
 

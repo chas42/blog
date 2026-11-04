@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +23,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.chas.blog.dto.CreatePostRequest;
 import com.chas.blog.dto.PostSummary;
 import com.chas.blog.dto.PostView;
+import com.chas.blog.dto.TranslationRequest;
 import com.chas.blog.exceptions.CannotPublishWithoutTranslationException;
 import com.chas.blog.exceptions.CannotSchedulePostInThePastException;
 import com.chas.blog.exceptions.CannotSchedulePublishedPostException;
@@ -37,9 +39,12 @@ import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 @ExtendWith(MockitoExtension.class)
 public class PostServiceTest {
+
+	private static final Instant PUBLISHED_AT = Instant.parse("2026-10-20T12:00:00Z");
 
 	@Mock
 	PostRepository repository;
@@ -52,23 +57,18 @@ public class PostServiceTest {
 		service = new PostServiceImpl(repository, clock);
 	}
 
+	private CreatePostRequest validRequest() {
+		return new CreatePostRequest(
+				42L,
+				new TranslationRequest("My Title is this", "Summary", "Content"),
+				new TranslationRequest("Meu Título é este", "Resumo", "Conteúdo"));
+	}
+
 	@Test
 	void testCreatePostDraft() {
 
-		var translationRequest = new com.chas.blog.dto.TranslationRequest(
-				"My Title is this",
-				"Summary",
-				"Content");
-		var translationRequest2 = new com.chas.blog.dto.TranslationRequest(
-				"Meu Título é este",
-				"Resumo",
-				"Conteúdo");
-
 		// given
-		var request = new CreatePostRequest(
-				1L,
-				translationRequest,
-				translationRequest2);
+		var request = validRequest();
 
 		when(repository.save(any(Post.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
@@ -115,22 +115,8 @@ public class PostServiceTest {
 			return post;
 		});
 
-		var translationRequest = new com.chas.blog.dto.TranslationRequest(
-				"My Title is this",
-				"Summary",
-				"Content");
-		var translationRequest2 = new com.chas.blog.dto.TranslationRequest(
-				"Meu Título é este",
-				"Resumo",
-				"Conteúdo");
-
-		// given
-		var request = new CreatePostRequest(
-				1L,
-				translationRequest,
-				translationRequest2);
-
-		Long id = service.createDraft(request);
+		// when
+		Long id = service.createDraft(validRequest());
 
 		// then
 		assertThat(id).isEqualTo(42L);
@@ -243,28 +229,39 @@ public class PostServiceTest {
 				.hasMessage("Cannot schedule a post that is already published");
 	}
 
-	private PostTranslation translation(Language language, String title, String slug) {
+	private Post publishedPost(String enSlug, String ptSlug, Instant publishedAt) {
 		Post post = Post.createDraft(1L);
-		post.addTranslation(language, title, slug, "Summary of " + title, "Content of " + title);
-		return post.getTranslations().get(0);
+		post.addTranslation(Language.EN, "Title " + enSlug, enSlug, "Summary " + enSlug, "Content " + enSlug);
+		post.addTranslation(Language.PT, "Título " + ptSlug, ptSlug, "Resumo " + ptSlug, "Conteúdo " + ptSlug);
+		post.publish(publishedAt);
+		return post;
+	}
+
+	private PostTranslation translationIn(Post post, Language language) {
+		return post.getTranslations().stream()
+				.filter(t -> t.getLanguage() == language)
+				.findFirst()
+				.orElseThrow();
 	}
 
 	@Test
 	void findPublishedReturnsViewOfTranslation() {
 		// given
-		PostTranslation translation = translation(Language.PT, "Olá Mundo", "ola-mundo");
+		Post post = publishedPost("hello-world", "ola-mundo", PUBLISHED_AT);
 		when(repository.findPublishedSlug(Language.PT, "ola-mundo", clock.instant()))
-				.thenReturn(Optional.of(translation));
+				.thenReturn(Optional.of(translationIn(post, Language.PT)));
 
 		// when
 		PostView view = service.findPublished(Language.PT, "ola-mundo");
 
 		// then
-		assertThat(view.title()).isEqualTo("Olá Mundo");
 		assertThat(view.slug()).isEqualTo("ola-mundo");
-		assertThat(view.summary()).isEqualTo("Summary of Olá Mundo");
-		assertThat(view.content()).isEqualTo("Content of Olá Mundo");
+		assertThat(view.title()).isEqualTo("Título ola-mundo");
+		assertThat(view.summary()).isEqualTo("Resumo ola-mundo");
+		assertThat(view.content()).isEqualTo("Conteúdo ola-mundo");
 		assertThat(view.language()).isEqualTo(Language.PT);
+		assertThat(view.publishedAt()).isEqualTo(PUBLISHED_AT);
+		assertThat(view.translations()).isEqualTo(Map.of(Language.EN, "hello-world"));
 	}
 
 	@Test
@@ -282,10 +279,14 @@ public class PostServiceTest {
 	@Test
 	void listPublishedMapsTranslationsToSummaries() {
 		// given
+		Instant olderDate = PUBLISHED_AT.minus(1, ChronoUnit.DAYS);
+		Post newer = publishedPost("second", "segundo", PUBLISHED_AT);
+		Post older = publishedPost("first", "primeiro", olderDate);
+
 		Pageable pageable = PageRequest.of(1, 2); // segunda página, 2 itens por página
 		List<PostTranslation> content = List.of(
-				translation(Language.EN, "First", "first"),
-				translation(Language.EN, "Second", "second"));
+				translationIn(newer, Language.EN),
+				translationIn(older, Language.EN));
 		when(repository.findByLanguage(Language.EN, clock.instant(), pageable))
 				.thenReturn(new PageImpl<>(content, pageable, 5));
 
@@ -294,9 +295,10 @@ public class PostServiceTest {
 
 		// then: conteúdo convertido, na mesma ordem
 		assertThat(page.getContent())
-				.extracting(PostSummary::title)
-				.containsExactly("First", "Second");
-		assertThat(page.getContent().get(0).summary()).isEqualTo("Summary of First");
+				.extracting(PostSummary::slug, PostSummary::title, PostSummary::summary, PostSummary::publishedAt)
+				.containsExactly(
+						tuple("second", "Title second", "Summary second", PUBLISHED_AT),
+						tuple("first", "Title first", "Summary first", olderDate));
 
 		// then: metadados preservados
 		assertThat(page.getNumber()).isEqualTo(1);
