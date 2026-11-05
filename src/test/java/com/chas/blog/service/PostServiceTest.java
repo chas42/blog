@@ -85,7 +85,7 @@ public class PostServiceTest {
 		Post postSaved = postCaptor.getValue();
 
 		assertThat(postSaved.getStatus()).isEqualTo(PostStatus.DRAFT);
-		assertThat(postSaved.getAuthorId()).isEqualTo(1L);
+		assertThat(postSaved.getAuthorId()).isEqualTo(42L);
 		assertThat(postSaved.getPublishedAt()).isNull();
 		assertThat(postSaved.getTranslations()).hasSize(2);
 
