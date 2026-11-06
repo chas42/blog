@@ -3,6 +3,8 @@ package com.chas.blog.util;
 import java.text.Normalizer;
 import java.util.Locale;
 
+import com.chas.blog.exceptions.InvalidTitleException;
+
 public class SlugGenerator {
 
 	private SlugGenerator() {
@@ -18,7 +20,7 @@ public class SlugGenerator {
 				.replaceAll("-+$", "");
 
 		if (normalized.isEmpty()) {
-			throw new IllegalArgumentException("Title cannot be converted to a valid slug: " + title);
+			throw new InvalidTitleException("The Title \"" + title + "\" cannot be converted to a valid slug.");
 		}
 
 		return normalized;

@@ -1,12 +1,14 @@
 package com.chas.blog.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 /**
  * TranslationRequest
  */
 public record TranslationRequest(
-    String title,
-    String summary,
-    String content
-) {
-
+        @NotBlank @Size(max = 255) String title,
+        @Size(max = 500) String summary,
+        @NotNull String content) {
 }

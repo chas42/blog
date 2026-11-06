@@ -7,6 +7,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import com.chas.blog.exceptions.InvalidTitleException;
+
 public class SlugGeneratorTest {
 
     @ParameterizedTest
@@ -36,8 +38,8 @@ public class SlugGeneratorTest {
     @ValueSource(strings = { "Привет мир", "!!!", "   " })
     void rejectsTitleWithoutLatinCharacters(String title) {
         assertThatThrownBy(() -> SlugGenerator.fromTitle(title))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Title cannot be converted to a valid slug: "+ title);
+                .isInstanceOf(InvalidTitleException.class)
+                .hasMessage("The Title \"" + title + "\" cannot be converted to a valid slug.");
     }
 
 }

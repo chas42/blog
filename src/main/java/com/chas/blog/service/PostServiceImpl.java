@@ -14,6 +14,7 @@ import com.chas.blog.dto.PostView;
 import com.chas.blog.exceptions.CannotSchedulePostInThePastException;
 import com.chas.blog.exceptions.CannotSchedulePublishedPostException;
 import com.chas.blog.exceptions.PostNotFoundException;
+import com.chas.blog.exceptions.SlugAlreadyExistsException;
 import com.chas.blog.model.post.Language;
 import com.chas.blog.model.post.Post;
 import com.chas.blog.model.post.PostStatus;
@@ -36,7 +37,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public Long createDraft(CreatePostRequest request) {
 
-        Post post = Post.createDraft(request.authorId());
+        Post post = Post.createDraft(null);
 
         post.addTranslation(
                 Language.EN,
@@ -51,6 +52,16 @@ public class PostServiceImpl implements PostService {
                 SlugGenerator.fromTitle(request.pt().title()),
                 request.pt().summary(),
                 request.pt().content());
+
+        if (postRepository.existsByTranslationsLanguageAndTranslationsSlug(Language.EN,
+                SlugGenerator.fromTitle(request.en().title()))) {
+            throw new SlugAlreadyExistsException();
+        }
+
+        if (postRepository.existsByTranslationsLanguageAndTranslationsSlug(Language.PT,
+                SlugGenerator.fromTitle(request.pt().title()))) {
+            throw new SlugAlreadyExistsException();
+        }
 
         Post savedPost = postRepository.save(post);
 

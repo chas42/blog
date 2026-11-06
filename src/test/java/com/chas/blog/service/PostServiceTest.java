@@ -59,7 +59,6 @@ public class PostServiceTest {
 
 	private CreatePostRequest validRequest() {
 		return new CreatePostRequest(
-				42L,
 				new TranslationRequest("My Title is this", "Summary", "Content"),
 				new TranslationRequest("Meu Título é este", "Resumo", "Conteúdo"));
 	}
@@ -85,7 +84,7 @@ public class PostServiceTest {
 		Post postSaved = postCaptor.getValue();
 
 		assertThat(postSaved.getStatus()).isEqualTo(PostStatus.DRAFT);
-		assertThat(postSaved.getAuthorId()).isEqualTo(42L);
+		assertThat(postSaved.getAuthorId()).isEqualTo(null);
 		assertThat(postSaved.getPublishedAt()).isNull();
 		assertThat(postSaved.getTranslations()).hasSize(2);
 

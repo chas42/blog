@@ -34,4 +34,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             """)
     Page<PostTranslation> findByLanguage(Language language, Instant now, Pageable pageable);
 
+    boolean existsByTranslationsLanguageAndTranslationsSlug(Language pt, String fromTitle);
+
 }
