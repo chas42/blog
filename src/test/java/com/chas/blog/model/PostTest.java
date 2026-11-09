@@ -2,7 +2,7 @@ package com.chas.blog.model;
 
 import org.junit.jupiter.api.Test;
 
-import com.chas.blog.exceptions.CannotPublishWithoutTranslationException;
+import com.chas.blog.exceptions.post.CannotPublishWithoutTranslationException;
 import com.chas.blog.model.post.Language;
 import com.chas.blog.model.post.Post;
 

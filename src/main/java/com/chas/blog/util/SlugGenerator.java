@@ -3,7 +3,7 @@ package com.chas.blog.util;
 import java.text.Normalizer;
 import java.util.Locale;
 
-import com.chas.blog.exceptions.InvalidTitleException;
+import com.chas.blog.exceptions.post.InvalidTitleException;
 
 public class SlugGenerator {
 

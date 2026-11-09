@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.chas.blog.dto.CreatePostRequest;
 import com.chas.blog.service.PostService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/v1/admin/posts")
 public class AdminPostController {
@@ -24,7 +26,7 @@ public class AdminPostController {
     }
 
     @PostMapping
-    public ResponseEntity<CreatePostResponse> createDraft(@RequestBody CreatePostRequest request) {
+    public ResponseEntity<CreatePostResponse> createDraft(@RequestBody @Valid CreatePostRequest request) {
         Long postId = postService.createDraft(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(new CreatePostResponse(postId));
     }

@@ -12,11 +12,13 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 import com.chas.blog.dto.CreatePostRequest;
 import com.chas.blog.dto.TranslationRequest;
+import com.chas.blog.exceptions.post.CannotPublishWithoutTranslationException;
 import com.chas.blog.security.SecurityConfig;
 import com.chas.blog.service.PostService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
+
 
 @WebMvcTest
 @Import(SecurityConfig.class)
@@ -71,6 +73,119 @@ public class AdminPostControllerTest {
         // then
         assertThat(result).hasStatus(201);
         assertThat(result).bodyJson().extractingPath("$.id").isEqualTo(1);
+    }
+
+    @Test 
+    void emptyTitleShouldReturnBadRequest() {
+        // given
+        String requestBody = """
+                {
+                    "en": {
+                        "title": "",
+                        "summary": "Test Summary",
+                        "content": "Test Content"
+                    },
+                    "pt": {
+                        "title": "Título de teste",
+                        "summary": "Resumo de teste",
+                        "content": "Conteúdo de teste"
+                    }
+                }
+                """;
+
+        // when
+        MvcTestResult result = mockMvc.post()
+                .uri("/api/v1/admin/posts")
+                .contentType("application/json")
+                .content(requestBody)
+                .exchange();
+
+        // then
+        assertThat(result).hasStatus(400);
+    }
+
+    @Test 
+    void missingLanguageShouldReturnBadRequest() {
+        // given
+        String requestBody = """
+                {
+                    "en": {
+                        "title": "",
+                        "summary": "Test Summary",
+                        "content": "Test Content"
+                    }
+                }
+                """;
+
+        // when
+        MvcTestResult result = mockMvc.post()
+                .uri("/api/v1/admin/posts")
+                .contentType("application/json")
+                .content(requestBody)
+                .exchange();
+
+        // then
+        assertThat(result).hasStatus(400);
+    }
+
+    @Test 
+    void titleWithMoreThan255CharactersShouldReturnBadRequest() {
+        // given
+        String longTitle = "A".repeat(256);
+        String requestBody = String.format("""
+                {
+                    "en": {
+                        "title": "%s",
+                        "summary": "Test Summary",
+                        "content": "Test Content"
+                    },
+                    "pt": {
+                        "title": "Título de teste",
+                        "summary": "Resumo de teste",
+                        "content": "Conteúdo de teste"
+                    }
+                }
+                """, longTitle);
+
+        // when
+        MvcTestResult result = mockMvc.post()
+                .uri("/api/v1/admin/posts")
+                .contentType("application/json")
+                .content(requestBody)
+                .exchange();
+
+        // then
+        assertThat(result).hasStatus(400);
+    }
+
+    @Test
+    void publishPost() {
+        // given
+        Long postId = 1L;
+
+        // when
+        MvcTestResult result = mockMvc.post()
+                .uri("/api/v1/admin/posts/{postId}/publish", postId)
+                .exchange();
+
+        // then
+        assertThat(result).hasStatus(204);
+    }
+
+    @Test 
+    void publishPostWithoutTranslationShouldReturnUnprocessableContent() {
+        // given
+        Long postId = 1L;
+
+        given()
+
+        // when
+        MvcTestResult result = mockMvc.post()
+                .uri("/api/v1/admin/posts/{postId}/publish", postId)
+                .exchange();
+
+        // then
+        assertThat(result).hasStatus(422);
     }
 
 }

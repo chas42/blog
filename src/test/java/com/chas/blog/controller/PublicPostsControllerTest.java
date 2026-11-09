@@ -21,7 +21,7 @@ import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
 import com.chas.blog.dto.PostSummary;
 import com.chas.blog.dto.PostView;
-import com.chas.blog.exceptions.PostNotFoundException;
+import com.chas.blog.exceptions.post.PostNotFoundException;
 import com.chas.blog.model.post.Language;
 import com.chas.blog.security.SecurityConfig;
 import com.chas.blog.service.PostService;

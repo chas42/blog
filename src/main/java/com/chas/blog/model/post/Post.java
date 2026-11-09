@@ -7,7 +7,7 @@ import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.chas.blog.exceptions.CannotPublishWithoutTranslationException;
+import com.chas.blog.exceptions.post.CannotPublishWithoutTranslationException;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;

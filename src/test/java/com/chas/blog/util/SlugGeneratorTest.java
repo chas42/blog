@@ -7,7 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.chas.blog.exceptions.InvalidTitleException;
+import com.chas.blog.exceptions.post.InvalidTitleException;
 
 public class SlugGeneratorTest {
 

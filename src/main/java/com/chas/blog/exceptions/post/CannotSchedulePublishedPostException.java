@@ -1,4 +1,4 @@
-package com.chas.blog.exceptions;
+package com.chas.blog.exceptions.post;
 
 /**
  * CannotSchedulePublishedPostException

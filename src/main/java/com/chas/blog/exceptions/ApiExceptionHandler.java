@@ -1,4 +1,4 @@
-package com.chas.blog.config;
+package com.chas.blog.exceptions;
 
 import java.util.Map;
 
@@ -8,11 +8,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.chas.blog.exceptions.CannotPublishWithoutTranslationException;
-import com.chas.blog.exceptions.CannotSchedulePostInThePastException;
-import com.chas.blog.exceptions.CannotSchedulePublishedPostException;
-import com.chas.blog.exceptions.PostNotFoundException;
-import com.chas.blog.exceptions.SlugAlreadyExistsException;
+import com.chas.blog.exceptions.post.CannotPublishWithoutTranslationException;
+import com.chas.blog.exceptions.post.CannotSchedulePostInThePastException;
+import com.chas.blog.exceptions.post.CannotSchedulePublishedPostException;
+import com.chas.blog.exceptions.post.PostNotFoundException;
+import com.chas.blog.exceptions.post.SlugAlreadyExistsException;
 
 @RestControllerAdvice 
 public class ApiExceptionHandler {
