@@ -1,4 +1,4 @@
-package com.chas.blog.controller;
+package com.chas.blog.dto;
 
 /**
  * CreatePostResponse

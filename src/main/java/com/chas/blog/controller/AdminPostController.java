@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.chas.blog.dto.CreatePostRequest;
+import com.chas.blog.dto.CreatePostResponse;
+import com.chas.blog.dto.SchedulePostRequest;
 import com.chas.blog.service.PostService;
 
 import jakarta.validation.Valid;
@@ -41,8 +43,8 @@ public class AdminPostController {
     }
 
     @PostMapping("/{postId}/schedule")
-    public ResponseEntity<Void> schedulePost(@PathVariable Long postId, @RequestBody String scheduledDateTime) {
-        postService.schedule(postId, Instant.parse(scheduledDateTime));
+    public ResponseEntity<Void> schedulePost(@PathVariable Long postId, @RequestBody @Valid SchedulePostRequest body) {
+        postService.schedule(postId, Instant.parse(body.when()));
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .build();

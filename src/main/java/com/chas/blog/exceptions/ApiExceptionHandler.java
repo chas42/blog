@@ -44,7 +44,7 @@ public class ApiExceptionHandler {
 
 	@ExceptionHandler(CannotSchedulePublishedPostException.class)
 	ProblemDetail handleCannotPublishedPost(CannotSchedulePublishedPostException ex) {
-		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage());
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
 		problem.setTitle("Cannot publish post");
 		return problem;
 	}
