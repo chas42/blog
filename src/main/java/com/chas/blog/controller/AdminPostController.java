@@ -44,7 +44,7 @@ public class AdminPostController {
 
     @PostMapping("/{postId}/schedule")
     public ResponseEntity<Void> schedulePost(@PathVariable Long postId, @RequestBody @Valid SchedulePostRequest body) {
-        postService.schedule(postId, Instant.parse(body.when()));
+        postService.schedule(postId, body.when());
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .build();

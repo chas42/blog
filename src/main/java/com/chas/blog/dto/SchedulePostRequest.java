@@ -1,9 +1,10 @@
 package com.chas.blog.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import java.time.Instant;
+
 import jakarta.validation.constraints.NotNull;
 
 public record SchedulePostRequest(
-    @NotNull @NotBlank String when) {
+    @NotNull Instant when) {
 
 }
