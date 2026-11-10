@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
-@WebMvcTest
+@WebMvcTest(controllers = AdminPostController.class)
 @Import(SecurityConfig.class)
 public class AdminPostControllerTest {
 
@@ -214,7 +214,7 @@ public class AdminPostControllerTest {
     }
 
     @Test
-    void schedulePostAlreadyPublishedShouldReturnUnprocessableContent() {
+    void alreadyPublishedShouldReturnUnprocessableContent() {
         // given
         Long postId = 1L;
         Instant when = PUBLISHED_AT.plusSeconds(3600);

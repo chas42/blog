@@ -32,7 +32,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
-@WebMvcTest
+@WebMvcTest(controllers = PublicPostController.class)
 @Import(SecurityConfig.class)
 public class PublicPostsControllerTest {
 
