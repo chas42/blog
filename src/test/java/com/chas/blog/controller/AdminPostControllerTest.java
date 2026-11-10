@@ -15,6 +15,7 @@ import com.chas.blog.dto.CreatePostRequest;
 import com.chas.blog.dto.TranslationRequest;
 import com.chas.blog.exceptions.post.CannotPublishWithoutTranslationException;
 import com.chas.blog.exceptions.post.CannotSchedulePublishedPostException;
+import com.chas.blog.exceptions.post.InvalidTitleException;
 import com.chas.blog.exceptions.post.PostNotFoundException;
 import com.chas.blog.exceptions.post.SlugAlreadyExistsException;
 import com.chas.blog.security.SecurityConfig;
@@ -237,7 +238,7 @@ public class AdminPostControllerTest {
         assertThat(result).hasStatus(HttpStatus.CONFLICT);
     }
 
-    @Test 
+    @Test
     void schedulePostWithoutPublishAt() {
         // given
         Long postId = 1L;
@@ -256,7 +257,7 @@ public class AdminPostControllerTest {
         assertThat(result).hasStatus(HttpStatus.BAD_REQUEST);
     }
 
-    @Test 
+    @Test
     void duplicateSlugShouldReturnConflict() {
         // given
         Long postId = 1L;
@@ -279,6 +280,40 @@ public class AdminPostControllerTest {
 
         // then
         assertThat(result).hasStatus(HttpStatus.CONFLICT);
+    }
+
+    @Test
+    void createPostWithInvalidTitleShouldReturnBadRequest() {
+        // given
+        String requestBody = """
+                {
+                    "en": {
+                        "title": "!!!",
+                        "summary": "Test Summary",
+                        "content": "Test Content"
+                    },
+                    "pt": {
+                        "title": "!!!!",
+                        "summary": "Resumo de teste",
+                        "content": "Conteúdo de teste"
+                    }
+                }
+                """;
+        willThrow(new InvalidTitleException("Invalid title"))
+                .given(postService)
+                .createDraft(new CreatePostRequest(
+                        new TranslationRequest("!!!", "Test Summary", "Test Content"),
+                        new TranslationRequest("!!!!", "Resumo de teste", "Conteúdo de teste")));
+
+        // when
+        MvcTestResult result = mockMvc.post()
+                .uri("/api/v1/admin/posts")
+                .contentType("application/json")
+                .content(requestBody)
+                .exchange();
+
+        // then
+        assertThat(result).hasStatus(HttpStatus.BAD_REQUEST);
     }
 
 }

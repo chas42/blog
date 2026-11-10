@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.chas.blog.exceptions.post.CannotPublishWithoutTranslationException;
 import com.chas.blog.exceptions.post.CannotSchedulePostInThePastException;
 import com.chas.blog.exceptions.post.CannotSchedulePublishedPostException;
+import com.chas.blog.exceptions.post.InvalidTitleException;
 import com.chas.blog.exceptions.post.PostNotFoundException;
 import com.chas.blog.exceptions.post.SlugAlreadyExistsException;
 
@@ -60,6 +61,13 @@ public class ApiExceptionHandler {
 	ProblemDetail handleSlugAlreadyExists(SlugAlreadyExistsException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
 		problem.setTitle("Slug already exists");
+		return problem;
+	}
+
+	@ExceptionHandler(InvalidTitleException.class)
+	ProblemDetail handleInvalidTitle(InvalidTitleException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+		problem.setTitle("Invalid title");
 		return problem;
 	}
 
