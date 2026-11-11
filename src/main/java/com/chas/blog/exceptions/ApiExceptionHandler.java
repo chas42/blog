@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -15,10 +16,10 @@ import com.chas.blog.exceptions.post.InvalidTitleException;
 import com.chas.blog.exceptions.post.PostNotFoundException;
 import com.chas.blog.exceptions.post.SlugAlreadyExistsException;
 
-@RestControllerAdvice 
+@RestControllerAdvice
 public class ApiExceptionHandler {
 
-    @ExceptionHandler(PostNotFoundException.class)
+	@ExceptionHandler(PostNotFoundException.class)
 	ProblemDetail handlePostNotFound(PostNotFoundException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
 		problem.setTitle("Post not found");
@@ -30,9 +31,8 @@ public class ApiExceptionHandler {
 		ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
 		problem.setTitle("Validation failed");
 		problem.setProperty("errors", ex.getBindingResult().getFieldErrors().stream()
-			.map(e -> Map.of("field", e.getField(), "message", e.getDefaultMessage()))
-			.toList()
-		);
+				.map(e -> Map.of("field", e.getField(), "message", e.getDefaultMessage()))
+				.toList());
 		return problem;
 	}
 
@@ -40,7 +40,7 @@ public class ApiExceptionHandler {
 	ProblemDetail handleCannotPublishWithoutTranslation(CannotPublishWithoutTranslationException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage());
 		problem.setTitle("Cannot publish post without translation");
-		return problem;	
+		return problem;
 	}
 
 	@ExceptionHandler(CannotSchedulePublishedPostException.class)
@@ -71,5 +71,11 @@ public class ApiExceptionHandler {
 		return problem;
 	}
 
+	@ExceptionHandler(BadCredentialsException.class)
+	ProblemDetail handleBadCredentials(BadCredentialsException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+		problem.setTitle("Unauthorized");
+		return problem;
+	}
 
 }
