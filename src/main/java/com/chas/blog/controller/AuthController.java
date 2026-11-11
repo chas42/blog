@@ -5,13 +5,16 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.chas.blog.dto.LoginRequest;
 import com.chas.blog.dto.LoginResponse;
 import com.chas.blog.security.TokenService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@RestController("/api/v1/auth")
+@RestController
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -23,9 +26,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> postMethodName(@RequestBody String entity) {
+    public ResponseEntity<LoginResponse> postMethodName(@RequestBody LoginRequest body) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(entity, entity));
+                new UsernamePasswordAuthenticationToken(body.username(), body.password()));
 
         String token = tokenService.generate(authentication);
 
